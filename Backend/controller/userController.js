@@ -1,4 +1,4 @@
-import { User } from "../models/userModel";
+import { User } from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -27,13 +27,16 @@ export const register = async (req, res) => {
       role,
       phoneNumber,
     });
+    return res.status(201).json({
+      message: "User registered successfully",
+      success: true,
+    });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    console.log(error);
   }
-  res.json({ message: "User registered successfully", success: true });
 };
 
-// To Register a User
+// To Login a User
 export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -61,16 +64,19 @@ export const login = async (req, res) => {
     }
 
     //check role is correct or not
-    if (user.role !== role) {
+    if (user.role != role) {
       return res.status(400).json({
         message: "Account does not exit with current role",
         success: false,
       });
     }
 
+    const tokenData = {
+      userId: user._id,
+    };
     //generate JWT token
-    const token = jwt.sign({ userId: user._id }, process.env.secret_key, {
-      expiresIn: "2d",
+    const token = await jwt.sign(tokenData, process.env.secret_key, {
+      expiresIn: "1d",
     });
     user = {
       _id: user._id,
@@ -84,7 +90,7 @@ export const login = async (req, res) => {
     return res
       .status(200)
       .cookie("token", token, {
-        maxAge: 2 * 60 * 60,
+        maxAge: 1 * 24 * 60 * 60 * 1000,
         httpsOnly: true,
         sameSite: "strict",
       })
@@ -97,6 +103,8 @@ export const login = async (req, res) => {
     console.log(error);
   }
 };
+
+// to logout user
 export const logout = async (req, res) => {
   try {
     return res.status(200).cookie("token", "", { maxAge: 0 }).json({
@@ -113,16 +121,14 @@ export const updateProfile = async (req, res) => {
   try {
     const { fullname, email, bio, skills, phoneNumber } = req.body;
     const file = req.file;
-    if (!fullname || !email || !phoneNumber || !bio || !skills) {
-      return res.status(400).json({
-        message: "Something is missing",
-        success: false,
-      });
+
+    let skillsArray;
+    if (skills) {
+      skillsArray = skills.split(",");
     }
 
-    const skillsArray = skills.split(",");
     const userId = req.id; //middleware authentication
-    const user = await User.findById(userId);
+    let user = await User.findById(userId);
     if (!user) {
       return res.status(400).json({
         message: "User not found",
@@ -130,13 +136,12 @@ export const updateProfile = async (req, res) => {
       });
     }
     // updating data
-    user.fullname = fullname;
-    user.email = email;
-    user.phoneNumber = phoneNumber;
-    user.bio = bio;
-    user.skills = skillsArray;
+    if (fullname) user.fullname = fullname;
+    if (email) user.email = email;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (bio) user.Profile.bio = bio;
+    if (skills) user.Profile.skills = skillsArray;
 
-    //resume comes later here
     await user.save();
     user = {
       _id: user._id,
@@ -144,7 +149,7 @@ export const updateProfile = async (req, res) => {
       email: user.email,
       role: user.role,
       phoneNumber: user.phoneNumber,
-      profile: user.Profile,
+      Profile: user.Profile,
     };
     return res.status(200).json({
       message: "Profile updated successfully",
