@@ -7,12 +7,13 @@ import { Badge } from "./ui/badge";
 import { Label } from "./ui/label";
 import AppliedJobs from "./AppliedJobs";
 import UpdateProfile from "./UpdateProfile";
+import { useSelector } from "react-redux";
 
-const skills = ["HTML", "CSS", "JavaScript", "React", "Node.js"];
 const isResume = true;
-
 const Profile = () => {
   const [open, setOpen] = useState(false);
+  const { user } = useSelector((store) => store.auth);
+
   return (
     <div>
       <Navbar />
@@ -26,8 +27,8 @@ const Profile = () => {
               />
             </Avatar>
             <div>
-              <h1>Full Name</h1>
-              <p className="italic text-sm">Bio is here</p>
+              <h1>{user?.fullname}</h1>
+              <p className="italic text-sm">{user?.Profile?.bio}</p>
             </div>
           </div>
           <Button
@@ -41,18 +42,20 @@ const Profile = () => {
         <div className="mt-5">
           <div className="flex items-center gap-3 my-2">
             <Mail />
-            <span>gangwarkeshav3@gmail.com</span>
+            <span>{user?.email}</span>
           </div>
           <div className="flex items-center gap-2 my-2">
             <Contact />
-            <span>+91-8449169377</span>
+            <span>{user?.phoneNumber}</span>
           </div>
         </div>
         <div className="my-5">
           <h1>Skills</h1>
           <div className="flex itmes-center gap-1">
-            {skills.length != 0 ? (
-              skills.map((item, index) => <Badge key={index}>{item}</Badge>)
+            {user?.Profile?.skills.length != 0 ? (
+              user?.Profile?.skills.map((item, index) => (
+                <Badge key={index}>{item}</Badge>
+              ))
             ) : (
               <span>NA</span>
             )}
@@ -61,11 +64,15 @@ const Profile = () => {
         <div className="grid w-full max-w-sm items-center gap-1.5">
           <Label>Resume</Label>
           <Button
-            onClick={() =>
-              isResume && window.open("https://youtube.com", "_blank")
-            }
+            onClick={() => {
+              if (isResume && user?.Profile?.Resume) {
+                window.open(user.Profile.Resume, "_blank");
+              }
+            }}
           >
-            {isResume ? "View Resume" : "NA"}
+            {isResume && user?.Profile?.ResumeOriginalName
+              ? user.Profile.ResumeOriginalName
+              : "NA"}
           </Button>
         </div>
       </div>

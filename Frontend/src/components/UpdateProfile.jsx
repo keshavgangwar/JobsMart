@@ -10,7 +10,11 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import axios from "axios";
+import { USER_API_END_POINT } from "@/utils/constant";
+import { setUser } from "@/redux/authSlice";
 
 const UpdateProfile = ({ open, setOpen }) => {
   const [loading, setLoading] = useState(false);
@@ -22,9 +26,56 @@ const UpdateProfile = ({ open, setOpen }) => {
     phoneNumber: user?.phoneNumber,
     bio: user?.Profile?.bio,
     skills: user?.Profile?.skills?.map((skill) => skill),
-    Resume: user?.Profile?.resume,
+    Resume: user?.Profile?.Resume,
     profilePicture: user?.Profile?.file,
   });
+
+  const dispatch = useDispatch();
+  const changeEventHandler = (e) => {
+    setInput({ ...input, [e.target.name]: e.target.value });
+  };
+
+  const fileChangeHandler = (e) => {
+    const file = e.target.files?.[0];
+    setInput({ ...input, file });
+  };
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("fullname", input.fullname);
+    formData.append("email", input.email);
+    formData.append("phoneNumber", input.phoneNumber);
+    formData.append("bio", input.bio);
+    formData.append("skills", input.skills);
+    if (input.file) {
+      formData.append("file", input.file);
+    }
+    try {
+      setLoading(true);
+      const res = await axios.post(
+        `${USER_API_END_POINT}/profile/update`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
+      if (res.data.success) {
+        dispatch(setUser(res.data.user));
+        toast.success("Profile updated successfully");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    } finally {
+      setLoading(false);
+    }
+    setOpen(false);
+    console.log(input);
+  };
 
   return (
     <Dialog open={open}>
@@ -37,13 +88,14 @@ const UpdateProfile = ({ open, setOpen }) => {
             Update Profile
           </DialogTitle>
         </DialogHeader>
-        <form>
+        <form onSubmit={submitHandler}>
           <div className="grid mt-4">
             <div>
               <Label>Full Name</Label>
               <Input
                 className={"my-2"}
                 value={input.fullname}
+                onChange={changeEventHandler}
                 type="text"
                 name="fullname"
                 placeholder="Full Name"
@@ -54,6 +106,7 @@ const UpdateProfile = ({ open, setOpen }) => {
               <Input
                 className={"my-2"}
                 value={input.bio}
+                onChange={changeEventHandler}
                 type="text"
                 name="bio"
                 placeholder="Bio"
@@ -64,6 +117,7 @@ const UpdateProfile = ({ open, setOpen }) => {
               <Input
                 className={"my-2"}
                 value={input.email}
+                onChange={changeEventHandler}
                 type="email"
                 name="email"
                 placeholder="Email"
@@ -74,6 +128,7 @@ const UpdateProfile = ({ open, setOpen }) => {
               <Input
                 className={"my-2"}
                 value={input.phoneNumber}
+                onChange={changeEventHandler}
                 type="text"
                 name="contact"
                 placeholder="Contact"
@@ -84,6 +139,7 @@ const UpdateProfile = ({ open, setOpen }) => {
               <Input
                 className={"my-2"}
                 value={input.skills}
+                onChange={changeEventHandler}
                 type="text"
                 name="skills"
                 placeholder="Skills"
@@ -93,6 +149,7 @@ const UpdateProfile = ({ open, setOpen }) => {
               <Label>Photo</Label>
               <Input
                 accept="image/*"
+                onChange={fileChangeHandler}
                 type="file"
                 name="Photo"
                 id="Photo"
@@ -103,6 +160,7 @@ const UpdateProfile = ({ open, setOpen }) => {
               <Label>Resume</Label>
               <Input
                 accept="application/pdf"
+                onChange={fileChangeHandler}
                 type="file"
                 name="file"
                 id="file"
