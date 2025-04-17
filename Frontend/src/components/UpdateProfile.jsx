@@ -21,13 +21,13 @@ const UpdateProfile = ({ open, setOpen }) => {
   const { user } = useSelector((store) => store.auth);
 
   const [input, setInput] = useState({
-    fullname: user?.fullname,
-    email: user?.email,
-    phoneNumber: user?.phoneNumber,
-    bio: user?.Profile?.bio,
-    skills: user?.Profile?.skills?.map((skill) => skill),
-    Resume: user?.Profile?.Resume,
-    profilePicture: user?.Profile?.file,
+    fullname: user?.fullname || "",
+    email: user?.email || "",
+    phoneNumber: user?.phoneNumber || "",
+    bio: user?.Profile?.bio || "",
+    skills: user?.Profile?.skills?.join(",") || "",
+    Resume: user?.Profile?.Resume || "",
+    profilePicture: user?.Profile?.profilePicture || "",
   });
 
   const dispatch = useDispatch();

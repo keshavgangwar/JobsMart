@@ -3,15 +3,16 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Bookmark } from "lucide-react";
 import { Avatar, AvatarImage } from "./ui/avatar";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const Job = () => {
+const Job = ({ job }) => {
   const navigate = useNavigate();
-  const JobId = "Keshav";
   return (
     <div className="p-5 rounded-md shadow-xl bg-white border border-gray-300">
       <div className="flex items-center justify-between">
-        <p className="text-sm italic test-gray-500">2 Days ago</p>
+        <p className="text-sm italic test-gray-500">
+          {job?.createdAt} Days ago
+        </p>
         <Button
           className={"rounded-full hover:bg-[#fbbf24]"}
           variant={"outline"}
@@ -27,28 +28,30 @@ const Job = () => {
           </Avatar>
         </Button>
         <div>
-          <h1 className="font-medium text-lg">Company Name</h1>
+          <h1 className="font-medium text-lg">{job?.company?.name}</h1>
           <p className="text-sm text-gray-500">India</p>
         </div>
       </div>
       <div>
-        <h1 className="font-bold text-md text-[#2563eb] italic">Job Title</h1>
-        <p className="text-sm italic">Job Description</p>
+        <h1 className="font-bold text-md text-[#2563eb] italic">
+          {job?.title}
+        </h1>
+        <p className="text-sm italic">{job?.description}</p>
       </div>
       <div className="flex items-center gap-2 mt-4">
         <Badge className="text-[#6A38C2] font-bold" variant={"ghost"}>
-          10 Position
+          {job?.position} Position
         </Badge>
         <Badge className="font-bold" variant={"ghost"}>
-          Full time
+          {job?.jobType}
         </Badge>
         <Badge className="text-[#fbbf24] font-bold" variant={"ghost"}>
-          15 LPA
+          {job?.salary} LPA
         </Badge>
       </div>
       <div className="flex items-center gap-2 mt-4">
         <Button
-          onClick={() => navigate(`/description/${JobId}`)}
+          onClick={() => navigate(`/description/${job?._id}`)}
           variant={"outline"}
           className={"hover:bg-[#fbbf24] cursor-pointer"}
         >
